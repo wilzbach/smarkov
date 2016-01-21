@@ -1,0 +1,4 @@
+__pycache__/
+dist
+smarkov.egg-info/
+pg1342.txt
