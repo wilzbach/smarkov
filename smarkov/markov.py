@@ -2,20 +2,28 @@
 # encoding: utf-8
 #
 # Markov chain manipulation
-# Copyright (C) 2016 greenify
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# The MIT License (MIT)
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# Copyright (c) 2016 greenify
 #
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
 
 from collections import defaultdict
 from itertools import chain
@@ -76,11 +84,12 @@ class Markov:
                     transition_counts[token] = transition_counts[
                         token] * 1.0 / summed_occurences
 
-    def _text_generator(self, next_token=None, emit=lambda x, _, __: x):
+    def _text_generator(self, next_token=None, emit=lambda x, _, __: x, max_length=None):
         """ loops from the start state to the end state and records the emissions
         Tokens are joint to sentences by looking ahead for the next token type
 
         emit: by default the markovian emit (see HMM for different emission forms)
+        max_length: maximum number of emissions
         """
         assert next_token is not None
         last_tokens = utils.prefilled_buffer(
@@ -98,15 +107,20 @@ class Markov:
             last_emissions.append(emission)
             generated_tokens.append(emission)
             last_tokens.append(new_token)
+            # cut-off for max. emissions
+            # + 1 for the start state
+            if max_length is not None and max_length + 1 <= len(generated_tokens):
+                break
         text = generated_tokens[:-1]
         return text
 
-    def generate_text(self):
+    def generate_text(self, max_length=None):
         """ Generates sentences from a given corpus
+        max_length: maximum number of emissions
         Returns:
             Properly formatted string of generated sentences
         """
-        return self._text_generator(next_token=self._generate_next_token)
+        return self._text_generator(next_token=self._generate_next_token, max_length=max_length)
 
     def _generate_next_token_helper(self, past_states, transitions):
         """ generates next token based previous states """
